@@ -4,10 +4,9 @@ from tree import Interval, Linear, PiecewiseLinear, Branch, Tree, Plotter
 
 
 def parse_itinerary(itinerary: list[Branch]):
-    y_labels = [b.label() for b in itinerary]
-    y_values = [b.order() for b in itinerary]
     x_values = np.arange(1, len(itinerary) + 1, 1)
-    return x_values, y_values, y_labels
+    y_labels = [b.label() for b in itinerary]
+    return x_values, y_labels
 
 
 ##############################
@@ -22,13 +21,11 @@ interval_c2 = Interval(25, 30)  # [25, 30)
 
 branch_a = Branch('a', interval_a, 0)
 branch_b = Branch('b', interval_b, 1)
-branch_c1 = Branch('c1', interval_c1, 2)
-branch_c2 = Branch('c2', interval_c2, 3)
+branch_c1 = Branch('c', interval_c1, 2)  # denoted by c
+branch_c2 = Branch('d', interval_c2, 3)  # denoted by d
 
 f1 = Linear(1, 10, interval_a)  # f(x) = x + 10
 f2 = Linear(1, 10, interval_b)  # f(x) = x + 10
-
-plt = Plotter('Itinerary', 'Branches', 'Steps')
 ##############################
 
 
@@ -38,13 +35,11 @@ plt = Plotter('Itinerary', 'Branches', 'Steps')
 # - How branch c1 is mapped to branch a.
 # - How branch c2 is mapped to branch b.
 ##############################
-def run_one(x: float, plot=True):
-    return run_batch(x, x + 1, 1, plot=plot)
+def run_one(x: float, plot=True, n_iter=200):
+    return run_batch(x, x + 1, 1, plot=plot, n_iter=n_iter)
 
 
-def run_batch(start: float, stop: float, step: float, plot=False):
-    N_ITER = 150
-
+def run_batch(start: float, stop: float, step: float, plot=False, n_iter=200):
     f3_1 = Linear(2, -40, interval_c1)  # f(x) = 2x - 40
     f3_2 = Linear(2, -40, interval_c2)  # f(x) = 2x - 40
     f = PiecewiseLinear([f1, f2, f3_1, f3_2])
@@ -55,16 +50,15 @@ def run_batch(start: float, stop: float, step: float, plot=False):
     aperiodic_pts = []  # the starting points of the aperiodic itinerary
 
     for s in np.arange(start, stop, step):
-        t.iter(s, N_ITER)
-        x_values, y_values, y_labels = parse_itinerary(t.itinerary())
-        prefix, cycle = bruteforce_search(''.join(y_labels))
-        print(f'Itinerary from {format(s, ".1f")}: ({prefix}, {cycle})')
+        t.iter(s, n_iter)
+        x_values, y_labels = parse_itinerary(t.itinerary())
+        prefix, cycle, index = bruteforce_search(''.join(y_labels))
+        print(f'Itinerary from {format(s, ".1f")}: at {index} ({prefix}, {cycle})')
         if len(cycle) == 0:
             n_aperiodic += 1
             aperiodic_pts.append(s)
         if plot:
-            plt.plot(x_values, y_values, ticks=t.orders(), labels=t.labels(), title=f'Itinerary from {s}')
-            plt.plot(x_values, t.values(), title=f'Valued itinerary from {s}')
+            Plotter.plot(x_values, t.values(), y_labels, s, (index, len(cycle)), t.orders(), t.labels())
 
     print(f'Number of aperiodic itineraries: {n_aperiodic}')
     print(f'Aperiodic starting points: {aperiodic_pts}')
@@ -73,7 +67,7 @@ def run_batch(start: float, stop: float, step: float, plot=False):
 
 if __name__ == '__main__':
     # To enable plotting in batch mode, do `run_batch(x, y, z, plot=True)`
-    # To disable plotting in single mode, do `run_batch(x, plot=False)`
+    # To disable plotting in single mode, do `run_one(x, plot=False)`
 
     run_batch(0.0, 30.0, 0.1)
     # run_batch(0.0, 10, 0.5, plot=True)

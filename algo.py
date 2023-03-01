@@ -6,10 +6,10 @@ def bruteforce_search(string: str):
         while end_index <= length:
             substr = string[begin_index:end_index]
             if is_periodic(substr, string[end_index:]):
-                return string[:begin_index], substr
+                return string[:begin_index], substr, begin_index
             end_index += 1
         begin_index += 1
-    return string, ''
+    return string, '', -1
 
 
 def is_periodic(substr: str, rem: str):

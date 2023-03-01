@@ -262,16 +262,32 @@ class Tree:
 
 
 class Plotter:
-    def __init__(self, title: str, ylabel: str, xlabel: str):
-        self._title = title
-        self._ylabel = ylabel
-        self._xlabel = xlabel
+    @staticmethod
+    def plot(x_values, y_values, y_labels, start, period, ticks, labels):
+        fig, (ax1, ax2) = plt.subplots(2, sharex='all', figsize=(10, 6))
+        fig.suptitle(f'Itinerary starting from {start}')
+        fig.supxlabel('Steps')
 
-    def plot(self, x, y, ticks=None, labels=None, title=None):
-        plt.title(self._title if title is None else title)
-        plt.ylabel(self._ylabel)
-        if ticks is not None and labels is not None:
-            plt.yticks(ticks, labels)
-        plt.xlabel(self._xlabel)
-        plt.plot(x, y, marker='o')
+        ax1.set_ylabel('Branches')
+        ax1.set_yticks(ticks, labels)
+        ax1.plot(x_values, y_labels, marker='o')
+
+        ax2.set_ylabel('Values')
+        ax2.plot(x_values, y_values, marker='o')
+
+        # mark the first period
+        if period[0] >= 0:
+            begin_index = period[0] + 1
+            end_index = sum(period) + 1
+
+            ax1.plot([begin_index], [y_labels[begin_index - 1]], marker='o', color='r')
+            ax1.plot([end_index], [y_labels[end_index - 1]], marker='o', color='r')
+            ax1.vlines(x=begin_index, ymin=min(ticks), ymax=max(ticks), color='r', ls='--')
+            ax1.vlines(x=end_index, ymin=min(ticks), ymax=max(ticks), color='r', ls='--')
+
+            ax2.plot([begin_index], [y_values[begin_index - 1]], marker='o', color='r')
+            ax2.plot([end_index], [y_values[end_index - 1]], marker='o', color='r')
+            ax2.vlines(x=begin_index, ymin=min(y_values), ymax=max(y_values), color='r', ls='--')
+            ax2.vlines(x=end_index, ymin=min(y_values), ymax=max(y_values), color='r', ls='--')
+
         plt.show()
